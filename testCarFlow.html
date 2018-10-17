@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+		<title>创建三维场景</title>
+		<link href="../Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+		<link href="./css/pretty.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script type="text/javascript" src="./js/require.min.js" data-main="js/main"></script>
+		<script src="Routes.js"></script>
+		<style>
+			html,
+			body,
+			#cesiumContainer {
+				width: 100%;
+				height: 100%;
+				margin: 0;
+				padding: 0;
+				overflow: hidden;
+				background-color: #000000;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="cesiumContainer"></div>
+		<div id='loadingbar' class="spinner">
+			<div class="spinner-container container1">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container2">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container3">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+		</div>
+		<div id="toolbar" style="position: absolute;left: 5px;top: 5px;">
+			<button id="test" type="button" class="button black">测试</button>
+
+		</div>
+		<script>
+			var viewer;
+			var scene;
+			var state;
+			var layer;
+			var lable;
+			var url = './data/car/qiche1.s3m';
+			var lastheading;
+
+			function onload(Cesium) {
+				viewer = new Cesium.Viewer('cesiumContainer');
+				//viewer.clock.currentTime = Cesium.JulianDate.addSeconds(viewer.clock.currentTime, -0.35, viewer.clock.currentTime);
+				scene = viewer.scene;
+				var lineEntity = DrawRoutesLine(statesRoute);
+				viewer.zoomTo(lineEntity);
+
+				layer = new Cesium.DynamicLayer3D(scene.context, url);
+				layer.updateInterval = 2000;
+				scene.primitives.add(layer);
+
+				state = new Cesium.DynamicObjectState({
+					longitude: statesRoute[0][0],
+					latitude: statesRoute[0][1],
+					altitude: 1,
+					scale: new Cesium.Cartesian3(1, 1, 1),
+				});
+				//				lable = viewer.entities.add({
+				//					id: 'newchuan',
+				//					name: 'chuan',
+				//					position: new Cesium.Cartesian3.fromDegrees(statesRoute[0][0], statesRoute[0][1], 1),
+				//					label: {
+				//						text: '测试',
+				//						font: '24px Helvetica',
+				//						fillColor: Cesium.Color.SKYBLUE,
+				//						outlineColor: Cesium.Color.BLACK,
+				//						outlineWidth: 1,
+				//						style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+				//						verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+				//						pixelOffset: new Cesium.Cartesian2(0, -30)
+				//					}
+				//				});
+
+				layer.updateObjectWithModel(url, [state]);
+
+				$('#test').click(function() {
+
+					addEvent();
+					statePlay(0);
+					//viewer.trackedEntity =lable;
+				})
+
+				$('#loadingbar').remove();
+
+			}
+			var statePlay = function(index) {
+				if(index > -1 && index < 200) {
+					state.longitude = statesRoute[index][0];
+					state.latitude = statesRoute[index][1];
+					layer.updateObjectWithModel(url, [state]);
+					index++;
+					setTimeout(function() {
+						statePlay(index);
+					}, 2000)
+				} else {
+					//viewer.trackedEntity=''
+				}
+
+			}
+			var getPosition = function() {
+				var position = layer.group["./data/car/qiche1.s3m"].stateList.values[0].position;
+				return position
+			}
+
+			var addEvent = function() {
+				scene.preRender.addEventListener(function(scene, time) {
+					
+					var CameraPosition=scene.camera.position;
+					var cartographic = Cesium.Cartographic.fromCartesian(CameraPosition);
+					var range=cartographic.height;
+					console.log(range)
+					if(range<0)
+					{
+						range=100
+					}
+					
+					
+					var CameraPitch=viewer.camera.pitch;
+					
+					var position = layer.group["./data/car/qiche1.s3m"].stateList.values[0].position;
+
+					var Cx = position._property._interpolationResult[0];
+					var Cy = position._property._interpolationResult[1];
+					var Cz = position._property._interpolationResult[2];
+					if(Cx != undefined && Cy != undefined && Cz != undefined ) {
+						var tt = layer.group["./data/car/qiche1.s3m"].stateList.values[0].instanceInfo._orientation;
+						var back = new Cesium.Quaternion();
+						Cesium.Property.getValueOrUndefined(tt, time, back)
+
+						var hpr = Cesium.HeadingPitchRoll.fromQuaternion(back)
+//						var center = new Cesium.Cartesian3(Cx, Cy, Cz);
+//						var range = 20.0;
+//						var hpRange = new Cesium.HeadingPitchRange(hpr.heading-Math.PI/2, -Math.PI / 100, range);
+//						viewer.camera.lookAt(center,hpRange)
+						
+						//console.log(hpr.heading)
+						if(hpr.heading != 0) {
+
+							lastheading = hpr.heading;
+
+							var center = new Cesium.Cartesian3(Cx, Cy, Cz);
+							var hprnew = new Cesium.HeadingPitchRoll(hpr.heading , 0, 0);
+							var transform = Cesium.Transforms.headingPitchRollToFixedFrame(center, hprnew);
+
+							//var range = 20.0;
+							var hpRange = new Cesium.HeadingPitchRange(-Math.PI*0.35, CameraPitch, range);
+							viewer.camera.lookAtTransform(transform, hpRange);
+
+						} else {
+							if(lastheading) {
+								var center = new Cesium.Cartesian3(Cx, Cy, Cz);
+								var hprnew = new Cesium.HeadingPitchRoll(lastheading , 0, 0);
+								var transform = Cesium.Transforms.headingPitchRollToFixedFrame(center, hprnew);
+
+								//var range = 20.0;
+								var hpRange = new Cesium.HeadingPitchRange(-Math.PI*0.35, CameraPitch, range);
+								viewer.camera.lookAtTransform(transform, hpRange);
+
+							}
+
+						}
+					}
+				})
+			}
+
+			var DrawRoutesLine = function(points2D) {
+				var points = CullPoint3Ds(points2D);
+				var line = viewer.entities.add({
+					name: name,
+					polyline: {
+						positions: Cesium.Cartesian3.fromDegreesArrayHeights(points),
+						width: 20,
+						material: new Cesium.PolylineGlowMaterialProperty({
+							glowPower: 0.1,
+							color: Cesium.Color.YELLOW
+						})
+					},
+
+				});
+				return line;
+			}
+			//二维路线转三维路线
+			var CullPoint3Ds = function(points) {
+				var point3Ds = [];
+				for(var i = 0; i < points.length; i++) {
+					point3Ds.push(points[i][0]);
+					point3Ds.push(points[i][1]);
+					point3Ds.push(1);
+				}
+				return point3Ds;
+			}
+		</script>
+	</body>
+
+</html>
