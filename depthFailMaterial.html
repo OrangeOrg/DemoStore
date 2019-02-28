@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+		<title>绘制</title>
+		<link href="../Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+		<link href="./css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/pretty.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/bootstrap-select.min.js"></script>
+		<script src="./js/tooltip.js"></script>
+		<script src="./js/config.js"></script>
+		<script type="text/javascript" src="./js/require.min.js" data-main="js/main"></script>
+	</head>
+
+	<body>
+		<div id="cesiumContainer"></div>
+		<div id='loadingbar' class="spinner">
+			<div class="spinner-container container1">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container2">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container3">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+		</div>
+		<div id="toolbar" class="param-container tool-bar">
+			<button type="button" id="test" class="button black">禁用深度检测</button>
+		</div>
+		<script type="text/javascript">
+			var positions = [116.3891308763745, 39.99201648533952, 16, 116.3893776778912, 39.99237400155528, 16, 116.3897236613258, 39.99262772274066, 16, 116.3901918922407, 39.99281916690781, 16, 116.3907339329549, 39.99286529803242, 16, 116.3912298425445, 39.99269691942758, 16, 116.3916150374350, 39.99250086214797, 16, 116.3919494880885, 39.99213873281975, 16, 116.3921819436254, 39.99182174799671, 16, 116.3922954715231, 39.99142831350069, 16, 116.3922954715231, 39.99105926450378, 16, 116.3921967547730, 39.99076852339066, 16, 116.3919564077572, 39.99048262544610, 16, 116.3917372849152, 39.99019430591723, 16, 116.3912644408880, 39.98993597161939, 16, 116.3908723263287, 39.98986677493247, 16, 116.3902541692589, 39.98994750440054, 16, 116.3897478035704, 39.99011943321571, 16, 116.3892277517362, 39.99040881564668, 16, 116.3889914830486, 39.99073100022076, 16, 116.3888992261235, 39.99125378946299, 16, 116.3889666476276, 39.99177004555182, 16, 116.3890431879185, 39.99190759681407, 16,116.3891308763745, 39.99201648533952, 16]
+
+			function onload(Cesium) {
+				// 初始化viewer部件
+				var viewer = new Cesium.Viewer('cesiumContainer', {
+					infoBox: false,
+					selectionIndicator: false
+				});
+				viewer.scene.open(URL_CONFIG.SCENE_NIAOCHAO)
+				$('#loadingbar').remove();
+
+				addEntity(viewer)
+			}
+
+			var addEntity = function(viewer) {
+				window.entity = viewer.entities.add({
+					polygon: {
+						hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(positions),
+						perPositionHeight: true,
+						material: Cesium.Color.BLUE.withAlpha(0.2),
+						outline: false,
+						outlineColor: Cesium.Color.BLACK,
+					},
+					polyline: {
+						positions: Cesium.Cartesian3.fromDegreesArrayHeights(positions),
+						width: 5,
+						material: new Cesium.PolylineDashMaterialProperty({
+							color: Cesium.Color.CYAN
+						}),
+						depthFailMaterial:new Cesium.PolylineDashMaterialProperty({
+							color: Cesium.Color.ORANGE
+						}),
+					}
+
+				});
+			}
+		</script>
+	</body>
+
+</html>

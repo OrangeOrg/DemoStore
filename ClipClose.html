@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+		<title>绘制</title>
+		<link href="../Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+		<link href="./css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/pretty.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/bootstrap-select.min.js"></script>
+		<script src="./js/tooltip.js"></script>
+		<script src="./js/config.js"></script>
+		<script type="text/javascript" src="./js/require.min.js" data-main="js/main"></script>
+	</head>
+
+	<body>
+		<div id="cesiumContainer"></div>
+		<div id='loadingbar' class="spinner">
+			<div class="spinner-container container1">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container2">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container3">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+		</div>
+		<div id="toolbar" class="param-container tool-bar">
+			<!--	<button type="button" id="point" class="button black">绘制点</button>-->
+			<button type="button" id="polyline" class="button black">绘制线</button>
+			<!--<button type="button" id="polygon" class="button black">绘制面</button>-->
+			<!--<button type="button" id="marker" class="button black">添加地标</button>
+			<button type="button" id="clear" class="button black">清除</button>-->
+		</div>
+		<script type="text/javascript">
+			var viewer
+
+			function onload(Cesium) {
+				//初始化viewer部件
+				viewer = new Cesium.Viewer('cesiumContainer', {
+					infoBox: false,
+				});
+				var scene = viewer.scene;
+				try {
+					//打开所发布三维服务下的所有图层
+					var promise = scene.open('http://localhost:8090/iserver/services/3D-JieMianCeShi/rest/realspace');
+					promise.then(function(layers) {
+						window.layer = layers[0]
+					})
+
+				} catch(e) {
+					if(widget._showRenderLoopErrors) {
+						var title = '渲染时发生错误，已停止渲染。';
+						widget.showErrorPanel(title, undefined, e);
+					}
+				}
+				var clampMode = 0;
+				var tooltip = createTooltip(document.body);
+
+
+				var handlerLine = new Cesium.DrawHandler(viewer, Cesium.DrawMode.Line);
+				handlerLine.activeEvt.addEventListener(function(isActive) {
+					if(isActive == true) {
+						viewer.enableCursorStyle = false;
+						viewer._element.style.cursor = '';
+						$('body').removeClass('drawCur').addClass('drawCur');
+					} else {
+						viewer.enableCursorStyle = true;
+						$('body').removeClass('drawCur');
+					}
+				});
+				handlerLine.movingEvt.addEventListener(function(windowPosition) {
+					if(handlerLine.isDrawing) {
+						tooltip.showAt(windowPosition, '<p>左键单击绘制第二个点</p><p>右键单击结束绘制</p>');
+					} else {
+						tooltip.showAt(windowPosition, '<p>点击绘制第一个点</p>');
+					}
+
+				});
+				handlerLine.drawEvt.addEventListener(function(result) {
+					viewer.entities.removeAll()
+					tooltip.setVisible(false);
+					//result.object.show=false
+					var positions = result.object.positions;
+
+					var position1 = positions[0]
+					var position2 = positions[1];
+					var cartographic1 = Cesium.Cartographic.fromCartesian(position1);
+					var longitude1 = Number(Cesium.Math.toDegrees(cartographic1.longitude).toFixed(15));
+					var latitude1 = Number(Cesium.Math.toDegrees(cartographic1.latitude).toFixed(15));
+					var height1 = Number(cartographic1.height.toFixed(15));
+					//height1<0?height1=0:height1
+
+					var cartographic2 = Cesium.Cartographic.fromCartesian(position2);
+					var longitude2 = Number(Cesium.Math.toDegrees(cartographic2.longitude).toFixed(15));
+					var latitude2 = Number(Cesium.Math.toDegrees(cartographic2.latitude).toFixed(15));
+					var height2 = Number(cartographic2.height.toFixed(15));
+					//height2<0?height2=0:height2
+					var points = []
+					var point1 = {
+						"x": longitude1,
+						"y": latitude1,
+						"z": height1
+					}
+					var point2 = {
+						"x": longitude2,
+						"y": latitude2,
+						"z": height1-0.00001
+					}
+					var point3 = {
+							"x": (longitude2 + longitude1) / 2,
+							"y": (latitude1 + latitude2) / 2,
+							"z": height1+0.00001
+						}
+
+
+					points.push(point1)
+					points.push(point2)
+					points.push(point3)
+					points.push(point1)
+					var Clippoint1 = Cesium.Cartesian3.fromDegrees(point1.x, point1.y, point1.z);
+					var Clippoint2 = Cesium.Cartesian3.fromDegrees(point2.x, point2.y, point2.z);
+					var Clippoint3 = Cesium.Cartesian3.fromDegrees(point3.x, point3.y, point3.z);
+					layer.setCustomClipPlane(Clippoint1, Clippoint2, Clippoint3);
+					//points.push(point4)
+
+					var region3D = {
+						"type": "REGION3D",
+						"parts": [4],
+						"points": points
+					}
+					var queryObj = {
+						"operateRegion": region3D,
+						"sourceDatasetFilter": {
+							"attributeFilter": ""
+						}
+					}
+					var queryObjJSON = JSON.stringify(queryObj); // 转化为JSON字符串作为查询参数
+
+					$.ajax({
+						type: "post",
+						url: 'http://localhost:8090/iserver/services/spatialAnalysis-JieMianCeShi/restjsr/spatialanalyst/datasets/PowerEBM@截面测试/section.json?returnContent=true',
+						data: queryObjJSON,
+						success: function(result) {
+
+							if(result.geometries.length > 0) {
+								console.log(result)
+
+								result.geometries.forEach(function(geometry) {
+									var points = convertPoint3Ds(geometry.points)
+									console.log(points)
+									viewer.entities.add({
+										polygon: {
+											hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(points),
+											material: new Cesium.Color(39/255, 39/255, 39/255, 1),
+											perPositionHeight: true
+										}
+
+									});
+								})
+
+							}
+						},
+						error: function(msg) {
+							console.log(msg);
+						}
+					})
+
+				});
+				var convertPoint3Ds = function(points) {
+					var Cesiumpoints = [];
+					for(var i = 0, len = points.length - 1; i < len; i++) {
+						Cesiumpoints.push(points[i].x)
+						Cesiumpoints.push(points[i].y)
+						Cesiumpoints.push(points[i].z)
+					}
+					return Cesiumpoints
+				}
+
+				$('#polyline').click(function() {
+					deactiveAll();
+					handlerLine.activate();
+				});
+
+				$('#clear').click(function() {
+					clearAll();
+				});
+				$('#toolbar').show();
+				$('#loadingbar').remove();
+
+				function deactiveAll() {
+					handlerLine.deactivate();
+				}
+
+				function clearAll() {
+					handlerLine.clear();
+				}
+				if(!scene.pickPositionSupported) {
+					alert('不支持深度拾取,无法进行鼠标交互绘制！');
+				}
+			}
+		</script>
+	</body>
+
+</html>

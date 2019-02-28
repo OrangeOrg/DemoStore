@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+		<title>绘制</title>
+		<link href="../Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+		<link href="./css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/pretty.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/bootstrap-select.min.js"></script>
+		<script src="./js/tooltip.js"></script>
+		<script src="./js/config.js"></script>
+		<script type="text/javascript" src="./js/require.min.js" data-main="js/main"></script>
+	</head>
+
+	<body>
+		<div id="cesiumContainer"></div>
+		<div id='loadingbar' class="spinner">
+			<div class="spinner-container container1">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container2">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container3">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+		</div>
+		<script type="text/javascript">
+			function onload(Cesium) {
+				// 初始化viewer部件
+				var viewer = new Cesium.Viewer('cesiumContainer', {
+					infoBox: false,
+					selectionIndicator: false
+				});
+				viewer.scene.open(URL_CONFIG.SCENE_NIAOCHAO)
+				sceneAction_RightClik(viewer)
+				$('#loadingbar').remove();
+			}
+			var sceneAction_RightClik = function(viewer) {
+				var sceneAction_RightClik_handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+				sceneAction_RightClik_handler.setInputAction(function(e) {
+
+					var Xmin = $('#cesiumContainer').offset().top;
+					var Ymin = $('#cesiumContainer').offset().left;
+					var width = $('#cesiumContainer').width();
+					var height = $('#cesiumContainer').height();
+					var centerX = Xmin + width / 2;
+					var centerY = Ymin + height / 2;
+					var windowPosition = new Cesium.Cartesian2(centerX, centerY);
+
+					var point = viewer.scene.pickPosition(windowPosition);
+
+					var roateangle = Cesium.Math.toRadians(5);
+
+					viewer.scene.camera.rotate(point, roateangle);
+				}, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+
+			}
+
+		</script>
+	</body>
+
+</html>

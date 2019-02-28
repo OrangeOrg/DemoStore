@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+		<title>创建三维场景</title>
+		<link href="../Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+		<link href="./css/pretty.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script type="text/javascript" src="./js/require.min.js" data-main="js/main"></script>
+	</head>
+
+	<body>
+		<div id="cesiumContainer"></div>
+		<div id='loadingbar' class="spinner">
+			<div class="spinner-container container1">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container2">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container3">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+		</div>
+		<script>
+			var ledObj = {
+				text: '欢迎欢迎欢迎欢迎欢迎欢迎欢迎欢迎欢迎欢迎欢迎欢迎',
+				location: 0,
+				ledwall: '',
+				ledimgcavas: ''
+			}
+
+			function onload(Cesium) {
+				var viewer = new Cesium.Viewer('cesiumContainer', {});
+				ledObj.ledimgcavas = createCavas(ledObj.text);
+				var redWall = viewer.entities.add({
+					name: 'Red wall at height',
+					wall: {
+						positions: Cesium.Cartesian3.fromDegreesArrayHeights([108.0, 44.0, 120, 108.001, 44.0, 120.0]),
+						minimumHeights: [100.0, 100.0],
+						material: new Cesium.ImageMaterialProperty({
+							image: ledObj.ledimgcavas.toDataURL()
+						})
+					}
+				});
+				ledObj.ledwall = redWall;
+				viewer.zoomTo(redWall)
+				$('#loadingbar').remove();
+			}
+			var createCavas = function(text) {
+				var imgcavas = document.createElement('canvas');
+				imgcavas.width = 512;
+				imgcavas.height = 128;
+				imgcavas.style.backgroundColor = '#000000';
+				var context = imgcavas.getContext('2d');
+
+				context.font = '60px "微软雅黑"';
+				context.fillStyle = "red";
+				context.textBaseline = 'hanging'
+				context.fillText(text, 0, 34);
+				return imgcavas
+			}
+			setInterval(function() {
+				var imglength = 60 * ledObj.text.length;
+				if(ledObj.location > (0 - imglength)) {
+					ledObj.location -= 2
+					var context = ledObj.ledimgcavas.getContext('2d');
+					ledObj.ledimgcavas.height = ledObj.ledimgcavas.height;
+					context.font = '60px "微软雅黑"';
+					context.fillStyle = "red";
+					context.textBaseline = 'hanging'
+
+					context.fillText(ledObj.text, ledObj.location, 34);
+
+					ledObj.ledwall.wall.material.image._value = ledObj.ledimgcavas.toDataURL()
+				} else {
+					ledObj.location = ledObj.ledimgcavas.width;
+
+				}
+
+			}, 50)
+		</script>
+	</body>
+
+</html>

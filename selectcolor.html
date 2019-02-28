@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+		<title>创建三维场景</title>
+		<link href="../Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+		<link href="./css/pretty.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script type="text/javascript" src="./js/require.min.js" data-main="js/main"></script>
+		<script src="./js/config.js"></script>
+	</head>
+
+	<body>
+		<div id="cesiumContainer"></div>
+		<div id='loadingbar' class="spinner">
+			<div class="spinner-container container1">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container2">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container3">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+		</div>
+		<script>
+			function onload(Cesium) {
+				var viewer = new Cesium.Viewer('cesiumContainer');
+				var scene=viewer.scene
+				var promise = viewer.scene.open(URL_CONFIG.SCENE_CBD)
+				promise.then(function(layers){
+					MovePiceACtion()
+				})
+				$('#loadingbar').remove();
+				/*扩展实现移动鼠标高亮对象，兼容实体和s3m图层*/
+				var MovePiceACtion = function() {
+					this.handler = viewer.screenSpaceEventHandler;
+					this.lastPickedEntity;
+					this.lastPickedColor;
+					this.pickedColor = Cesium.Color.BLUE.withAlpha(0.7);
+
+					this.handler.setInputAction(function onMouseMove(movement) {
+						//选中高亮对象
+						var pickEntity = viewer.scene.pick(movement.startPosition);
+						//var pickEntity = viewer.scene.pick(movement.endPosition);
+						var s3mlayerPick = getSelection();
+
+						if(Cesium.defined(this.lastPickedEntity)) {
+							var propertyNames = this.lastPickedEntity.id._propertyNames;
+							propertyNames.forEach(function(typeValue) {
+								if(this.lastPickedEntity.id[typeValue] !== undefined) {
+									if(this.lastPickedEntity.id[typeValue].material !== undefined) {
+										this.lastPickedEntity.id[typeValue].material.color = this.lastPickedEntity.id[typeValue]['originalColor'];
+									}
+									if(this.lastPickedEntity.id[typeValue].color !== undefined) {
+
+										this.lastPickedEntity.id[typeValue].color = this.lastPickedEntity.id[typeValue]['originalColor'];
+									}
+									if(this.lastPickedEntity.id[typeValue].fillColor !== undefined) {
+
+										this.lastPickedEntity.id[typeValue].fillColor = this.lastPickedEntity.id[typeValue]['originalColor'];
+									}
+								}
+
+							})
+							this.lastPickedEntity = undefined;
+
+						}
+
+						if(pickEntity !== undefined) {
+							this.lastPickedEntity = pickEntity;
+							var propertyNames = pickEntity.id._propertyNames;
+							propertyNames.forEach(function(typeValue) {
+								if(pickEntity.id[typeValue] !== undefined) {
+									if(pickEntity.id[typeValue].material !== undefined) {
+										if(pickEntity.id[typeValue].originalColor === undefined) {
+											pickEntity.id[typeValue]['originalColor'] = {};
+											Cesium.Color.clone(pickEntity.id[typeValue].material.color._value, pickEntity.id[typeValue]['originalColor']);
+										}
+										pickEntity.id[typeValue].material.color = this.pickedColor;
+									}
+									if(pickEntity.id[typeValue].color !== undefined) {
+										if(pickEntity.id[typeValue].originalColor === undefined) {
+											pickEntity.id[typeValue]['originalColor'] = {};
+											Cesium.Color.clone(pickEntity.id[typeValue].color._value, pickEntity.id[typeValue]['originalColor']);
+										}
+										pickEntity.id[typeValue].color = this.pickedColor;
+									}
+									if(pickEntity.id[typeValue].fillColor !== undefined) {
+
+										if(pickEntity.id[typeValue].originalColor === undefined) {
+											pickEntity.id[typeValue]['originalColor'] = {};
+											Cesium.Color.clone(pickEntity.id[typeValue].fillColor._value, pickEntity.id[typeValue]['originalColor']);
+										}
+										pickEntity.id[typeValue].fillColor = this.pickedColor;
+									}
+								}
+							})
+							return;
+						} else if(s3mlayerPick !== undefined) {
+							s3mlayerPick.layer.selectColorType = 1;
+							s3mlayerPick.layer.selectedColor = this.pickedColor;
+							return;
+						} else {
+							//this.infoContainner.style.display = 'none'
+						}
+
+					}, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+				}
+				//返回选中对象
+				var getSelection = function() {
+					var layers = scene.layers._layers.values;
+					var layerCount = layers.length;
+					if(layerCount > 0) {
+						for(var i = 0; i < layerCount; i++) {
+							var ids = layers[i].getSelection();
+							if(ids[0] !== undefined) {
+								var Selection3D = {};
+								Selection3D["layer"] = layers[i];
+								Selection3D["ID"] = ids[0];
+								return Selection3D;
+							}
+						}
+						return undefined;
+					} else {
+						return undefined;
+					}
+				};
+			}
+		</script>
+	</body>
+
+</html>

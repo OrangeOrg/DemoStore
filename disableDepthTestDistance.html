@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+		<title>绘制</title>
+		<link href="../Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+		<link href="./css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/pretty.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/bootstrap.min.js"></script>
+		<script src="./js/bootstrap-select.min.js"></script>
+		<script src="./js/tooltip.js"></script>
+		<script src="./js/config.js"></script>
+		<script type="text/javascript" src="./js/require.min.js" data-main="js/main"></script>
+	</head>
+
+	<body>
+		<div id="cesiumContainer"></div>
+		<div id='loadingbar' class="spinner">
+			<div class="spinner-container container1">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container2">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container3">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+		</div>
+		<div id="toolbar" class="param-container tool-bar">
+			<button type="button" id="test" class="button black">禁用深度检测</button>
+		</div>
+		<script type="text/javascript">
+			function onload(Cesium) {
+				// 初始化viewer部件
+				var viewer = new Cesium.Viewer('cesiumContainer', {
+					infoBox: false,
+					selectionIndicator: false
+				});
+				viewer.scene.open(URL_CONFIG.SCENE_NIAOCHAO)
+				$('#loadingbar').remove();
+
+				addEntity(viewer)
+				$('#test').click(function(){
+					var $that=$(this);
+					var text= $that.text();
+					if(text==='禁用深度检测')
+					{
+						window.entity.point.disableDepthTestDistance=Number.POSITIVE_INFINITY
+						window.entity.label.disableDepthTestDistance=Number.POSITIVE_INFINITY
+						window.entity.billboard.disableDepthTestDistance=Number.POSITIVE_INFINITY
+						 $that.text('激活深度检测')
+					}
+					else
+					{
+						window.entity.point.disableDepthTestDistance=0
+						window.entity.label.disableDepthTestDistance=0
+						window.entity.billboard.disableDepthTestDistance=0
+						 $that.text('禁用深度检测')
+					}
+				})
+
+				if(!viewer.scene.pickPositionSupported) {
+					alert('不支持深度拾取,无法进行鼠标交互绘制！');
+				}
+			}
+			
+			var addEntity = function(viewer) {
+				window.entity = viewer.entities.add({
+					position: Cesium.Cartesian3.fromDegrees(116.38668108658214, 39.990728529080464, 20),
+					point: {
+						show: true, // default
+						color: Cesium.Color.SKYBLUE, // default: WHITE
+						pixelSize: 10, // default: 1
+						outlineColor: Cesium.Color.YELLOW, // default: BLACK
+						outlineWidth: 3, // default: 0
+						disableDepthTestDistance: 0
+					},
+					label: {
+						text: '鸟巢',
+						font: '24px Helvetica',
+						fillColor: Cesium.Color.SKYBLUE,
+						outlineColor: Cesium.Color.BLACK,
+						outlineWidth: 2,
+						pixelOffset: new Cesium.Cartesian2(50, 0),
+						style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+						disableDepthTestDistance: 0
+					},
+					billboard: {
+						image: './images/location4.png',
+						horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+						verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+						pixelOffsetScaleByDistance: new Cesium.NearFarScalar(1.0e3, 1.0, 1.5e6, 0.0),
+						translucencyByDistance: new Cesium.NearFarScalar(1.0e3, 1.0, 1.5e6, 0.1),
+						disableDepthTestDistance: 0
+					}
+
+				});
+			}
+		</script>
+	</body>
+
+</html>
