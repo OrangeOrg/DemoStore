@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+		<title>麻点图</title>
+		<link href="../Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+		<link href="./css/pretty.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script type="text/javascript" src="./js/require.min.js" data-main="js/main"></script>
+		<script src="./js/config.js"></script>
+	</head>
+
+	<body>
+		<div id="cesiumContainer"></div>
+		<div id='loadingbar' class="spinner">
+			<div class="spinner-container container1">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container2">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container3">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+		</div>
+		<script type="text/javascript">
+			function pittinglayer(Cesium, viewer) {
+				this.layer = ''
+				if(Cesium.defined(viewer)) {
+					this.layer = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection());
+				}
+			}
+			pittinglayer.prototype.addpoint = function(positon, options) {
+				options = options || {}
+				if(positon && options) {
+					this.layer.add({
+						position: positon,
+						color: options.color || Cesium.Color.RED,
+						pixelSize: options.pixelSize || 5,
+						id: options.id || undefined,
+						show: options.show || true,
+						outlineWidth: options.outlineWidth || 0,
+						outlineColor: options.outlineColor || undefined,
+						disableDepthTestDistance: options.disableDepthTestDistance || 0,
+						distanceDisplayCondition: options.distanceDisplayCondition || undefined,
+						scaleByDistance: options.scaleByDistance || undefined,
+						translucencyByDistance: options.translucencyByDistance || undefined
+					})
+				}
+			}
+		</script>
+
+		<script>
+			function onload(Cesium) {
+				var viewer = new Cesium.Viewer('cesiumContainer', {
+					homeButton: true
+				});
+				addpoints()
+				$('#loadingbar').remove();
+
+				function addpoints() {
+					var layer = new pittinglayer(Cesium, viewer)
+					var x = 106,
+						y = 39
+					for(var i = 0, len = 200; i < len; i++) {
+						for(var j = 0, n = 200; j < n; j++) {
+							var rgb = getrgb()
+							var color = new Cesium.Color(rgb.r, rgb.g, rgb.b)
+							layer.addpoint(Cesium.Cartesian3.fromDegrees(106 + 0.001 * j, 29 + 0.001 * i, 100), {
+								color: color
+							})
+						}
+
+					}
+
+				}
+
+				function getrgb() { //rgb颜色随机
+					var r = Math.floor(Math.random() * 256);
+					var g = Math.floor(Math.random() * 256);
+					var b = Math.floor(Math.random() * 256);
+					var rgb = {
+						r: r,
+						g: g,
+						b: b
+					}
+					return rgb;
+				}
+
+			}
+		</script>
+
+	</body>
+
+</html>

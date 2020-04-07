@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+		<title>创建三维场景</title>
+		<link href="../Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+		<link href="./css/pretty.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script type="text/javascript" src="./js/require.min.js" data-main="js/main"></script>
+	</head>
+
+	<body>
+		<div id="cesiumContainer"></div>
+		<div id='loadingbar' class="spinner">
+			<div class="spinner-container container1">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container2">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container3">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+		</div>
+		<script>
+			function onload(Cesium) {
+				var viewer = new Cesium.Viewer('cesiumContainer');
+				var scene=viewer.scene
+				//Cesium.Credential.CREDENTIAL = new Cesium.Credential("Yg8v-k2ny0bEF3HJENK3cXEf9OgYZRoFXg11Gk_qwwQyvghJmv1K-CIfixXuZbiLzT2ToQjNBKuBfQfXwHgt_g..");
+				//使用本地的一张图片初始化地球，建议图片长宽比2:1
+				//      viewer.imageryLayers.addImageryProvider(new Cesium.SingleTileImageryProvider({
+				//          url : './images/worldimage.jpg'
+				//      }));
+				//var promise = viewer.scene.open('http://gis.yangjiang.scodicim.com:8493/iserver/services/3D-YJGS1225/rest/realspace')
+				var promise = viewer.scene.open('http://localhost:8090/iserver/services/3D-CBD/rest/realspace')
+				promise.then(function(layers) {
+					layers.forEach(function(layer) {
+						//layer.indexedDBSetting.isOpen = true
+						layer.indexedDBSetting.isGeoTilesSave=true
+						layer.indexedDBSetting.isAttributesSave=true
+						//layer.indexedDBSetting.isGeoTilesRootNodeSave=true
+
+					})
+				})
+				//设置鼠标左击事件
+				var handler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
+				handler.setInputAction(function(e) {
+					var layer= scene.layers._selectedLayer
+					var ids = layer.getSelection()
+					var id = ids[0];
+					//通过id从indexDB查询属性
+					layer.getAttributesById(id).then(function(data) {
+						//将属性插入到table中
+						console.log(data)
+					});
+
+				}, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+				$('#loadingbar').remove();
+			}
+		</script>
+	</body>
+
+</html>

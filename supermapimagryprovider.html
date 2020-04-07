@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 	<head>
@@ -39,13 +39,13 @@
 		<script type="text/javascript">
 			function pittinglayer(Cesium, viewer) {
 				this.layer = ''
-				if(Cesium.defined(viewer)) {
+				if (Cesium.defined(viewer)) {
 					this.layer = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection());
 				}
 			}
 			pittinglayer.prototype.addpoint = function(positon, options) {
 				options = options || {}
-				if(positon && options) {
+				if (positon && options) {
 					this.layer.add({
 						position: positon,
 						color: options.color || Cesium.Color.RED,
@@ -75,14 +75,14 @@
 				//								}));
 				//								viewer.zoomTo(layer)
 				//								console.log(layer)
-//				var url2D = 'http://support.supermap.com.cn:8090/iserver/services/map-china400/rest/maps/China'
-//				var layer = new SuperMap2DImagryProvider(viewer, url2D)
-				var url2D = 'http://support.supermap.com.cn:8090/iserver/services/map-china400/rest/maps/China_4326'
+				//				var url2D = 'http://support.supermap.com.cn:8090/iserver/services/map-china400/rest/maps/China'
+				//				var layer = new SuperMap2DImagryProvider(viewer, url2D)
+				var url2D = 'http://localhost:8090/iserver/services/map-map/rest/maps/map'
 				var layer2 = new SuperMap2DImagryProvider(viewer, url2D)
 				//"http://support.supermap.com.cn:8090/iserver/services/map-china400/rest/maps/China_4326/tileImage.png?transparent=true&cacheEnabled=true&width=256&height=256&x={x}&y={y}&scale={scale}&redirect=false&overlapDisplayed=false&origin={"x":-180,"y":90}"
 				//								layer.show=false
-												var url = 'http://www.supermapol.com/realspace/services/3D-dixingyingxiang/rest/realspace/datas/MosaicResult'
-												var layerprovider = new SuperMap3DImageryProvider(viewer, url)
+				var url = 'http://www.supermapol.com/realspace/services/3D-dixingyingxiang/rest/realspace/datas/MosaicResult'
+				//var layerprovider = new SuperMap3DImageryProvider(viewer, url)
 				//								var layer = viewer.imageryLayers.addImageryProvider(layerprovider);
 
 				//				var custom = new Cesium.UrlTemplateImageryProvider({
@@ -156,7 +156,8 @@
 						var bounsbottom = parseFloat(xmlbounds[0].children[3].innerHTML)
 						var xmllevels = allobjs.getElementsByTagName('sml:Levels')
 						var xmlminlevel = _that.options.minimumLevel || parseInt(xmllevels[0].children[0].innerHTML)
-						var xmlmaxlevel = _that.options.maximumLevel || parseInt(xmllevels[0].children[xmllevels[0].children.length - 1].innerHTML)
+						var xmlmaxlevel = _that.options.maximumLevel || parseInt(xmllevels[0].children[xmllevels[0].children.length -
+							1].innerHTML)
 
 						_that.layerProvider = new Cesium.UrlTemplateImageryProvider({
 							url: url + '/data/index/{y}/{x}.{fileExtension}?level={level}',
@@ -202,16 +203,26 @@
 			//convert xml object to string (将xml对象转换成字符串)
 			function xml2String(xmlObject) {
 				//所有浏览器统一用这种方式处理(因为高版本的浏览器都支持)
-				return(new XMLSerializer()).serializeToString(xmlObject);
+				return (new XMLSerializer()).serializeToString(xmlObject);
 			}
 
 			function SuperMap2DImagryProvider(viewer, url, options) {
 				this.layerProvider = ''
 				this.viewer = viewer
 				this.options = options || {}
-				this.scales84 = [3.38032714321E-9, 6.76065428641E-9, 1.352130857282E-8, 2.704261714564E-8, 5.408523429128E-8, 1.0817046858257E-7, 2.1634093716514E-7, 4.3268187433028E-7, 8.6536374866056E-7, 1.73072749732112E-6, 3.46145499464224E-6, 6.92290998928448E-6, 1.3845819978568952E-5, 2.7691639957137904E-5, 5.538327991427581E-5, 1.1076655982855162E-4, 2.2153311965710323E-4, 4.4306623931420646E-4, 8.861324786284129E-4, 0.0017722649572568258, 0.0035445299145136517, 0.007089059829027303]
+				this.scales84 = [3.38032714321E-9, 6.76065428641E-9, 1.352130857282E-8, 2.704261714564E-8, 5.408523429128E-8,
+					1.0817046858257E-7, 2.1634093716514E-7, 4.3268187433028E-7, 8.6536374866056E-7, 1.73072749732112E-6,
+					3.46145499464224E-6, 6.92290998928448E-6, 1.3845819978568952E-5, 2.7691639957137904E-5, 5.538327991427581E-5,
+					1.1076655982855162E-4, 2.2153311965710323E-4, 4.4306623931420646E-4, 8.861324786284129E-4, 0.0017722649572568258,
+					0.0035445299145136517, 0.007089059829027303
+				]
 
-				this.scalesweb = [1.69016357160E-9, 3.38032714321E-9, 6.76065428641E-9, 1.352130857282E-8, 2.704261714564E-8, 5.408523429128E-8, 1.0817046858257E-7, 2.1634093716514E-7, 4.3268187433028E-7, 8.6536374866056E-7, 1.73072749732112E-6, 3.46145499464224E-6, 6.92290998928448E-6, 1.3845819978568952E-5, 2.7691639957137904E-5, 5.538327991427581E-5, 1.1076655982855162E-4, 2.2153311965710323E-4, 4.4306623931420646E-4, 8.861324786284129E-4, 0.0017722649572568258, 0.0035445299145136517, 0.007089059829027303]
+				this.scalesweb = [1.69016357160E-9, 3.38032714321E-9, 6.76065428641E-9, 1.352130857282E-8, 2.704261714564E-8,
+					5.408523429128E-8, 1.0817046858257E-7, 2.1634093716514E-7, 4.3268187433028E-7, 8.6536374866056E-7,
+					1.73072749732112E-6, 3.46145499464224E-6, 6.92290998928448E-6, 1.3845819978568952E-5, 2.7691639957137904E-5,
+					5.538327991427581E-5, 1.1076655982855162E-4, 2.2153311965710323E-4, 4.4306623931420646E-4, 8.861324786284129E-4,
+					0.0017722649572568258, 0.0035445299145136517, 0.007089059829027303
+				]
 				var _that = this
 				$.ajax({
 					type: "get",
@@ -229,57 +240,60 @@
 						var originx = 0
 						var originy = 0
 
-						if(epsgcode === 4326) {
+						if (epsgcode === 4326) {
 							tilingScheme = new Cesium.GeographicTilingScheme({
 								numberOfLevelZeroTilesX: 2,
 								numberOfLevelZeroTilesY: 1
 							})
 							originx = -180
 							originy = 90
-							if(_that.options.minimumLevel !== undefined) {
-								minlevel = _that.options.minimumLevel
-							} else {
-								minlevel = _that.compareLevel(result.visibleScales[0],_that.scales84)
+							if (result.visibleScales.length>0) {
+								if (_that.options.minimumLevel !== undefined) {
+									minlevel = _that.options.minimumLevel
+								} else {
+									minlevel = _that.compareLevel(result.visibleScales[0], _that.scales84)
+								}
+								if (_that.options.maximumLevel !== undefined) {
+									maxlevel = _that.options.maximumLevel
+								} else {
+									maxlevel = _that.compareLevel(result.visibleScales[result.visibleScales.length - 1], _that.scales84)
+								}
 							}
-							if(_that.options.maximumLevel !== undefined) {
-								maxlevel = _that.options.maximumLevel
-							} else {
-								maxlevel = _that.compareLevel(result.visibleScales[result.visibleScales.length - 1],_that.scales84)
-							}
+
 						}
-						if(epsgcode === 3857) {
+						if (epsgcode === 3857) {
 							tilingScheme = new Cesium.WebMercatorTilingScheme()
 							originx = -20037508.34
 							originy = 20037508.34
-							if(_that.options.minimumLevel !== undefined) {
+							if (_that.options.minimumLevel !== undefined) {
 								minlevel = _that.options.minimumLevel
 							} else {
-								minlevel = _that.compareLevel(result.visibleScales[0],_that.scalesweb)
+								minlevel = _that.compareLevel(result.visibleScales[0], _that.scalesweb)
 							}
-							if(_that.options.maximumLevel !== undefined) {
+							if (_that.options.maximumLevel !== undefined) {
 								maxlevel = _that.options.maximumLevel
 							} else {
-								maxlevel = _that.compareLevel(result.visibleScales[result.visibleScales.length - 1],_that.scalesweb)
+								maxlevel = _that.compareLevel(result.visibleScales[result.visibleScales.length - 1], _that.scalesweb)
 							}
 						}
 
 						_that.layerProvider = new Cesium.UrlTemplateImageryProvider({
-							url: url + "/tileImage.png?transparent=true&cacheEnabled=true&width=256&height=256&x={x}&y={y}&scale={scale}&redirect=false&overlapDisplayed=false&origin={'x':" + originx + ",'y':" + originy + "}",
+							url: url +
+								"/tileImage.png?transparent=true&cacheEnabled=true&width=256&height=256&x={x}&y={y}&scale={scale}&redirect=false&overlapDisplayed=false&origin={'x':" +
+								originx + ",'y':" + originy + "}",
 							rectangle: rectangle,
 							minimumLevel: minlevel || 0,
 							maximumLevel: maxlevel || 22,
 							tilingScheme: tilingScheme,
 							customTags: {
 								scale: function(imageryProvider, x, y, level) {
-									if(epsgcode===4326)
-									{
+									if (epsgcode === 4326) {
 										return _that.scales84[level]
 									}
-									if(epsgcode===3857)
-									{
+									if (epsgcode === 3857) {
 										return _that.scalesweb[level]
 									}
-									
+
 								}
 							}
 
@@ -295,9 +309,9 @@
 				})
 				SuperMap2DImagryProvider.prototype.compareLevel = function(value, scales) {
 					var val = value.toFixed(18)
-					for(var i = 0, len = scales.length; i < len; i++) {
+					for (var i = 0, len = scales.length; i < len; i++) {
 						var scale = scales[i].toFixed(18)
-						if(val === scale) {
+						if (val === scale) {
 							return i
 						}
 					}

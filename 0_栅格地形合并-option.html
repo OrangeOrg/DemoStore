@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <title>栅格地形合并-新-option</title>
+    <link href="../Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <link href="./css/bootstrap.min.css" rel="stylesheet">
+    <link href="./css/pretty.css" rel="stylesheet">
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/bootstrap.min.js"></script>
+    <script src="./js/bootstrap-select.min.js"></script>
+    <script src="./js/tooltip.js"></script>
+    <script src="./js/config.js"></script>
+    <script src="./js/Convert.js"></script>
+    <script type="text/javascript" src="./js/require.min.js" data-main="js/main"></script>
+    <style>
+        #play {
+            content: url(./images/play.png);
+            height: 30px;
+            padding: 5px;
+        }
+
+        #pause {
+            content: url(./images/pause.png);
+            height: 30px;
+            padding: 5px;
+        }
+
+        #stop {
+            content: url(./images/stop.png);
+            height: 30px;
+            padding: 5px;
+        }
+
+        .bootstrap-select {
+            width: 150px;
+        }
+    </style>
+</head>
+<body>
+<div id="cesiumContainer"></div>
+<div id='loadingbar' class="spinner">
+    <div class="spinner-container container1">
+        <div class="circle1"></div>
+        <div class="circle2"></div>
+        <div class="circle3"></div>
+        <div class="circle4"></div>
+    </div>
+    <div class="spinner-container container2">
+        <div class="circle1"></div>
+        <div class="circle2"></div>
+        <div class="circle3"></div>
+        <div class="circle4"></div>
+    </div>
+    <div class="spinner-container container3">
+        <div class="circle1"></div>
+        <div class="circle2"></div>
+        <div class="circle3"></div>
+        <div class="circle4"></div>
+    </div>
+</div>
+<div id='toolbar' class="param-container tool-bar">
+    <span type="button" id="play" class="button black" title="开始"></span>
+    <span type="button" id="pause" class="button black" title="暂停"></span>
+    <span type="button" id="stop" class="button black" title="停止"></span>
+    <div style="width: 150px;">
+        <select id="stopList" class="form-control" style="width: 100%;">
+        </select>
+    </div>
+    <div class="checkbox">
+        <label>
+            <input type="checkbox" id="show-line" checked> 显示飞行路线
+        </label>
+    </div>
+    <div class="checkbox">
+        <label>
+            <input type="checkbox" id="show-stop" checked> 显示飞行站点
+        </label>
+    </div>
+</div>
+<script>
+    function onload(Cesium) {
+        var viewer = new Cesium.Viewer('cesiumContainer');
+        window.scene = viewer.scene;
+        scene.debugShowFramesPerSecond = true;
+
+        var urlMap1 = 'http://localhost:8090/iserver/services/3D-GuiZhou_GaoQingTongDao32_2/rest/realspace/datas/gz32';//32*32
+        var urlMap2 = 'http://localhost:8090/iserver/services/3D-GuiZhou_GaoQingTongDao32_2/rest/realspace/datas/wdddem32_1';//32*32
+		var url='http://localhost:8090/iserver/services/3D-ZhaGeDiXing/rest/realspace/datas/带状数据'
+
+        var urls = [];
+        //urls.push(urlMap1);
+       /// urls.push(urlMap2);
+	   urls.push(url)
+
+
+        var a = Cesium.Rectangle.fromDegrees(117.704133, 35.634620, 117.767595, 35.702313);
+		// <sml:Left>117.704133</sml:Left>
+		// <sml:Top>35.702313</sml:Top>
+		// <sml:Right>117.767595</sml:Right>
+		// <sml:Bottom>35.634620</sml:Bottom>
+       // var b = Cesium.Rectangle.fromDegrees(102.999861, 23.999861, 110.000139, 30.000139);
+
+        var provider = new Cesium.SCTTerrainProvider({
+            urls: urls,
+            //useConfigFile:false,
+            compressType: 'NONE',
+            heightmapWidth: 65,
+            heightmapHeight: 65,
+            rectangles: [a],
+            levels: [[12, 13, 14,15,16,17,18]],
+        });
+
+        // provider._compressType='ZIP';
+        // provider._heightmapWidth=32;
+        // provider._heightmapHeight=32;
+        // provider._levelZeroMaximumGeometricError=156543.03392804097;
+        // provider._rectangles=[new Cesium.Rectangle(1.7884206981877837, 0.413379086579877, 1.9971463687630375, 0.4541578318880985)];
+        // provider._levels=[4,5,6,7,8,9,10,11,12,13,14];
+        // provider._ready = true;
+        // provider._readyPromise.resolve(true);
+
+
+        viewer.terrainProvider = provider;
+
+        // viewer.scene.terrainProvider.isCreateSkirt = false;
+
+
+        var provider2 = new Cesium.SuperMapImageryProvider({
+            url: 'http://localhost:8090/iserver/services/3D-ZhaGeDiXing/rest/realspace/datas/%E6%B5%8B%E8%AF%95%E5%BD%B1%E5%83%8F',
+            maximumLevel: 15
+        });
+        var imageryLayer2 = viewer.imageryLayers.addImageryProvider(provider2);
+         viewer.flyTo(imageryLayer2);
+
+
+        // viewer.scene.camera.setView({
+        //     destination: new Cesium.Cartesian3(-1485970.2828278772, 5570926.491317357, 2732102.2778781587),
+        //     orientation: {
+        //         direction: new Cesium.Cartesian3(-0.8800902235323653, -0.4257473677780579, -0.21019128733800208),
+        //         up: new Cesium.Cartesian3(-0.4748048566740254, 0.790312150865108, 0.3872557969530285)
+        //     }
+        // });
+
+
+        $('#toolbar').show();
+        $('#loadingbar').remove();
+
+    }
+</script>
+</body>
+</html>

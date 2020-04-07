@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+		<title>overlay热力图</title>
+		<link href="../Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+		<link href="./css/pretty.css" rel="stylesheet">
+		<script src="./js/jquery.min.js"></script>
+		<script src="./js/heatmap.min.js"></script>
+		<script src="./js/config.js"></script>
+		<script type="text/javascript" src="./js/require.min.js" data-main="js/main"></script>
+	</head>
+
+	<body>
+		<div id="cesiumContainer"></div>
+		<div id='loadingbar' class="spinner">
+			<div class="spinner-container container1">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container2">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container3">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+		</div>
+		<div class="heatmap" style="overflow: hidden; width: 840px;height: 400px;">
+			<div class="heatmap-canvas" width="800" height="400">
+			</div>
+		</div>
+		<div class="heatmapBump" style="overflow: hidden; width: 840px;height: 400px;">
+			<div id="heatmapBump-canvas" width="800" height="400">
+			</div>
+		</div>
+		<script>
+			var len = 200;
+			var points = [];
+			var max = 100;
+			var width = 800;
+			var height = 400;
+			//bounds=[minx,miny,maxx,maxy]
+			var bounds = [116.4463, 39.8999, 116.4563, 39.9119]
+			var count = 200
+
+			/*生成随机经纬度点和value*/
+			var createpointValue = function(bounds, count, width, height) {
+				var points = []
+				var lengthx = bounds[2] - bounds[0]
+				var lengthy = bounds[3] - bounds[1]
+				height = parseInt(width * (lengthx / lengthy))
+				//				document.getElementById("heatmap-canvas").style.height=height
+				//				document.getElementById("heatmapBump-canvas").style.height=height
+				for(var i = 0; i < count; i++) {
+					var degreesx = bounds[0] + lengthx * Math.random();
+					var degreesy = bounds[1] + lengthy * Math.random();
+					var pixcelx = parseInt(((degreesx - bounds[0]) / lengthx) * width)
+					var pixcely = parseInt(height - ((degreesy - bounds[1]) / lengthy) * height)
+					var val = Math.floor(Math.random() * 100)
+					var point = {
+						x: pixcelx,
+						y: pixcely,
+						value: Math.floor(Math.random() * 100)
+					}
+					points.push(point)
+				}
+				return points
+			}
+			var points = createpointValue(bounds, count, width, height)
+			console.log(points)
+			var data = {
+				max: max,
+				data: points
+			}
+			var heatmapInstance = h337.create({
+				container: document.querySelector('.heatmap'),
+				gradient: {
+					0.25: "rgb(0,0,255)",
+					0.55: "rgb(0,255,0)",
+					0.85: "yellow",
+					1.0: "rgb(255,0,0)"
+				}
+			});
+			heatmapInstance.setData(data);
+			var mycanvas = document.getElementsByClassName("heatmap-canvas");
+			var imgData = mycanvas[1].toDataURL("image/png");
+
+			var heatmapInstance4Bump = h337.create({
+				container: document.querySelector('.heatmap'),
+				gradient: {
+					0.25: "rgb(0,0,0)",
+					0.55: "rgb(140,140,140)",
+					0.85: "rgb(216,216,216)",
+					1.0: "rgb(255,255,255)"
+				}
+			});
+			heatmapInstance4Bump.setData(data);
+
+			var mycanvasBump = document.getElementsByClassName("heatmap-canvas");
+			var imgDataBump = mycanvasBump[2].toDataURL("image/png");
+
+			function onload(Cesium) {
+				var viewer = new Cesium.Viewer('cesiumContainer');
+				viewer.imageryLayers.addImageryProvider(new Cesium.BingMapsImageryProvider({
+					url: 'https://dev.virtualearth.net',
+					mapStyle: Cesium.BingMapsStyle.AERIAL,
+					key: URL_CONFIG.BING_MAP_KEY
+				}));
+
+				var scene = viewer.scene;
+				var promise = scene.open(URL_CONFIG.SCENE_CBD);
+				Cesium.when(promise, function(layers) {
+					//设置相机位置、视角，便于观察场景
+					scene.camera.setView({
+						destination: new Cesium.Cartesian3.fromDegrees(116.4599, 39.8876, 1185),
+						orientation: {
+							heading: 5.9011296292912405,
+							pitch: -0.406860014080324,
+							roll: 6.281842489230373
+						}
+					});
+					var layer = viewer.scene.layers.find('Building@CBD')
+					layer.addOverlayImage({
+						name: 'test' + Math.random(),
+						bounds: Cesium.Rectangle.fromDegrees(116.4463, 39.8999, 116.4563, 39.9119),
+						image: mycanvas[1]
+					})
+					var layer = viewer.scene.layers.find('Ground_dimian@CBD')
+					layer.addOverlayImage({
+						name: 'test' + Math.random(),
+						bounds: Cesium.Rectangle.fromDegrees(116.4463, 39.8999, 116.4563, 39.9119),
+						image: mycanvas[1]
+					})
+					var layer = viewer.scene.layers.find('Ground_daolu@CBD')
+					layer.addOverlayImage({
+						name: 'test' + Math.random(),
+						bounds: Cesium.Rectangle.fromDegrees(116.4463, 39.8999, 116.4563, 39.9119),
+						image: mycanvas[1]
+					})
+					
+					var layer = viewer.scene.layers.find('Ground_daolu@CBD')
+					layer.addOverlayImage({
+						name: 'test' + Math.random(),
+						bounds: Cesium.Rectangle.fromDegrees(116.4463, 39.8999, 116.4563, 39.9119),
+						image: mycanvas[1]
+					})
+				}, function(e) {
+					if(widget._showRenderLoopErrors) {
+						var title = '加载SCP失败，请检查网络连接状态或者url地址是否正确？';
+						widget.showErrorPanel(title, undefined, e);
+					}
+				});
+
+				$('#loadingbar').remove();
+			}
+		</script>
+	</body>
+
+</html>

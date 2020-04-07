@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <title>综合演示</title>
+    <link href="./css/widgets.css" rel="stylesheet">
+    <script src="./js/jquery.min.js"></script>
+	<script type="text/javascript" src="./js/require.min.js" data-main="js/main"></script>
+
+    <style>
+        html, body, #cesiumContainer {
+            width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;
+        }
+        .popup-content table{
+            padding: 5px;
+        }
+        .popup-content table td{
+            height: 40px;
+        }
+        .drawCur{
+            cursor: url(./images/cur/draw.cur), auto;
+        }
+
+        .popup-container{
+            width: 300px;
+            background-color: #ffffff;
+            display: none;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .popup-header{
+            width: 100%;
+            height: 40px;
+            background-color: #0083bc;
+            margin-top: -5px;
+        }
+        .popup-content{
+            width: 100%;
+            color: #000000;
+        }
+        .popup-footer{
+            height: 37px;
+            margin-top: 13px;
+        }
+        .header-title{
+            color: #ffffff;
+            font-size: 16px;
+            margin-left: 23px;
+        }
+
+        .popup-ok{
+            text-decoration: none;
+            font-size: 15px;
+            margin-left: 70%;
+            cursor: pointer;
+            color: #0083cb;
+            background-color: transparent;
+            padding: 5.5px 23px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+<div id="cesiumContainer"></div>
+<div style="position: absolute;left: 10px;top: 10px;">
+    <button id="test">剖切</button>
+</div>
+
+<script type="text/javascript">
+    function onload(Cesium) {
+        /**
+         * 先地质体模型上面随便画几条线，然后点击剖切，对地质体进行剖切
+         *
+        var urls = [
+            './data/dizhiti/baise.s3m',
+            './data/dizhiti/lanse.s3m',
+            './data/dizhiti/lvse.s3m',
+            './data/dizhiti/shenlan.s3m',
+            './data/dizhiti/qianlv.s3m'
+        ];
+         */
+        var urls = [
+            './dizhiti/Tile_-0035_0191_0000.s3m',
+            './dizhiti/Tile_-0035_0192_0000.s3m'
+        ];
+        var viewer = new Cesium.Viewer('cesiumContainer',{
+			infoBox : false
+		});
+        var scene = viewer.scene;
+        scene.camera.frustum.near = 0.1;
+        scene.globe.show = false;
+        scene.camera.setView({
+            destination : Cesium.Cartesian3.fromDegrees(1.055696299565728,0.188825377992835,100)
+        });
+
+		//S3M实例化模型集合类
+        var s3mInstanceColc = new Cesium.S3MInstanceCollection(scene._context);
+        scene.primitives.add(s3mInstanceColc);
+        var len = urls.length;
+        while(len--){
+            s3mInstanceColc.add(urls[len],{
+                position : Cesium.Cartesian3.fromDegrees(1.055696299565728,0.188825377992835,10)
+            });
+        }
+
+        //点击开始剖切
+        $('#test').click(function() {
+            s3mInstanceColc.clampToObject = true;//设置模型贴对象，开始剖切地质体
+        });
+
+        //画线，用于剖切地质体
+        var handlerLine = new Cesium.DrawHandler(viewer, Cesium.DrawMode.Line);
+        handlerLine.drawEvt.addEventListener(function(result){
+            //由这条线上两点创建一个面并拉伸为体，体的高度以地质体模型最上层高度为准
+            var p1 = result.object.positions[0];
+            var p2 = result.object.positions[1];
+            var height = Cesium.Cartographic.fromCartesian(p1).height - 1;
+            var matModel1 = Cesium.Transforms.eastNorthUpToFixedFrame(p1, Cesium.Ellipsoid.WGS84,new Cesium.Matrix4());
+            var matModel2 = Cesium.Transforms.eastNorthUpToFixedFrame(p2, Cesium.Ellipsoid.WGS84,new Cesium.Matrix4());
+            var p11 = Cesium.Matrix4.multiplyByPoint(matModel1, new Cesium.Cartesian3(5,0,0), new Cesium.Cartesian3());
+            var p22 = Cesium.Matrix4.multiplyByPoint(matModel2, new Cesium.Cartesian3(5,0,0), new Cesium.Cartesian3());
+            viewer.entities.add({
+                polygon : {
+                    hierarchy : [p1, p11, p22, p2],
+                    extrudedHeight: height,
+                    material : Cesium.Color.WHITE
+                }
+            });
+            handlerLine.activate();
+        });
+        handlerLine.activate();
+
+    }
+    </script>
+</body>
+</html>
